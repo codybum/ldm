@@ -1,13 +1,18 @@
 package io.cresco.ldp;
 
-import io.cresco.library.messaging.MsgEvent;
 import io.cresco.library.plugin.PluginBuilder;
 import io.cresco.library.utilities.CLogger;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class MessageSender implements Runnable  {
 
     private PluginBuilder plugin;
-    CLogger logger;
+    private CLogger logger;
+
+    private boolean isDone = false;
 
     public MessageSender(PluginBuilder plugin) {
         this.plugin = plugin;
@@ -20,60 +25,44 @@ public class MessageSender implements Runnable  {
 
         while(plugin.isActive()) {
             try {
-                //String timeStamp = String.valueOf(System.nanoTime());
-                //msg.setParam("ts",timeStamp);
 
-                //TO AGENT
-                MsgEvent msg = plugin.getAgentMsgEvent(MsgEvent.Type.INFO);
-                msg.setParam("desc","to-agent-exec");
-                msg.setParam("print"," thread:" + Thread.currentThread().getId());
-                //plugin.msgOut(msg);
-                MsgEvent me = plugin.sendRPC(msg);
+
+                if(!isDone) {
+
+                    Archiver archiver = new Archiver(plugin, "dotfile", "md5", false, "tar");
+
+
+                    Path inPath = Paths.get("/Users/cody/IdeaProjects/agent/test");
+
+                    Path bagged = archiver.bagItUp(inPath);
+
+
+                    if (bagged == null || !Files.exists(bagged)) {
+                        logger.error("Failed to bag up directory [{}]", inPath);
+                    }
+
+                    logger.info("Boxing up [{}]", inPath.toAbsolutePath());
+                    Path boxed = archiver.archive(bagged.toFile());
+                    logger.info("Reverting bagging on directory [{}]", inPath);
 
                 /*
-                msg = plugin.getRegionalControllerMsgEvent(MsgEvent.Type.INFO);
-                msg.setParam("desc","to-rc");
-                plugin.msgOut(msg);
-
-                msg = plugin.getGlobalControllerMsgEvent(MsgEvent.Type.INFO);
-                msg.setParam("desc","to-rc-global");
-                plugin.msgOut(msg);
-
-                msg = plugin.getPluginMsgEvent(MsgEvent.Type.INFO, plugin.getPluginID());
-                msg.setParam("desc","to-plugin-plugin");
-                plugin.msgOut(msg);
-
-
-                msg = plugin.getPluginMsgEvent(MsgEvent.Type.INFO, "plugin/0");
-                msg.setParam("desc","to-plugin-plugin");
-                plugin.msgOut(msg);
-
-                msg = plugin.getPluginMsgEvent(MsgEvent.Type.INFO, "plugin/1");
-                msg.setParam("desc","to-plugin-plugin");
-                plugin.msgOut(msg);
-
-
-                //TO REGION
-                msg = plugin.getRegionalAgentMsgEvent(MsgEvent.Type.INFO, "unknownagent");
-                msg.setParam("desc","to-region-agent");
-                plugin.msgOut(msg);
-
-                msg = plugin.getRegionalPluginMsgEvent(MsgEvent.Type.INFO,"unknownagent","plugin/0");
-                msg.setParam("desc","to-region-plugin");
-                plugin.msgOut(msg);
-
-                //TO GLOBAL
-                msg = plugin.getGlobalAgentMsgEvent(MsgEvent.Type.INFO,"unknownregion","unknownagent");
-                msg.setParam("desc","to-global-agent");
-                plugin.msgOut(msg);
-
-                msg = plugin.getGlobalPluginMsgEvent(MsgEvent.Type.INFO,"unknownregion","unknownagent", "plugin/0");
-                msg.setParam("desc","to-global-plugin");
-                plugin.msgOut(msg);
+                archiver.debagify(inPath);
+                if (boxed == null || !Files.exists(boxed)) {
+                    logger.error("Failed to box up directory [{}]", inPath);
+                    //return false;
+                }
                 */
 
-                //logger.info("Sent Message : " + message + " agent:" + plugin.getAgent());
-                Thread.sleep(1000);
+                    if (archiver.verifyBag(inPath)) {
+                        logger.info("YEA VERIFIED!");
+                    }
+                    isDone = true;
+                }
+
+
+
+
+                Thread.sleep(60000);
             } catch(Exception ex) {
                 ex.printStackTrace();
             }

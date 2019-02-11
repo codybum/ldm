@@ -28,11 +28,7 @@ public class ExecutorImpl implements Executor {
         return null;
     }
     @Override
-    public MsgEvent executeINFO(MsgEvent incoming) {
-        //logger.info("INCOMING INFO MESSAGE : " + incoming.getParams());
-        //System.out.println("INCOMING INFO MESSAGE FOR PLUGIN");
-        return null;
-    }
+    public MsgEvent executeINFO(MsgEvent incoming) { return null; }
     @Override
     public MsgEvent executeEXEC(MsgEvent incoming) {
         return null;

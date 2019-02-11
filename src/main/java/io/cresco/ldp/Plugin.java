@@ -23,12 +23,10 @@ import java.util.Map;
 public class Plugin implements PluginService {
 
     public BundleContext context;
-    public static  PluginBuilder pluginBuilder;
+    public PluginBuilder pluginBuilder;
     private Executor executor;
     private CLogger logger;
     private Map<String, Object> map;
-    public String myname;
-
 
 
     @Activate
@@ -36,14 +34,17 @@ public class Plugin implements PluginService {
 
         this.context = context;
         this.map = map;
-        myname = "this is my name";
 
     }
 
 
     @Modified
     void modified(BundleContext context, Map<String, Object> map) {
-        System.out.println("Modified Config Map PluginID:" + (String) map.get("pluginID"));
+        if(logger != null) {
+            logger.info("Modified Config Map PluginID:" + (String) map.get("pluginID"));
+        } else {
+            System.out.println("Modified Config Map PluginID:" + (String) map.get("pluginID"));
+        }
     }
 
     @Override
@@ -64,8 +65,6 @@ public class Plugin implements PluginService {
     @Override
     public boolean isStarted() {
 
-        System.out.println("Started PluginID:" + (String) map.get("pluginID"));
-
         try {
             pluginBuilder = new PluginBuilder(this.getClass().getName(), context, map);
             this.logger = pluginBuilder.getLogger(Plugin.class.getName(), CLogger.Level.Info);
@@ -79,10 +78,13 @@ public class Plugin implements PluginService {
 
             pluginBuilder.setIsActive(true);
 
+            logger.info("Started PluginID:" + (String) map.get("pluginID"));
+
+
             //send a bunch of messages
             MessageSender messageSender = new MessageSender(pluginBuilder);
             new Thread(messageSender).start();
-            logger.info("Started Skeleton Example Message Sender");
+            logger.info("Started File Watcher");
 
             //set plugin active
             return true;
